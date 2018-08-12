@@ -8,8 +8,25 @@
   (force-output *query-io*)
   (read-line *query-io*))
 
-(defvar *d/choices* '((:text "Write code.")
-		      (:text "Sleep.")))
+(defun prompt-read-number (prompt &key (error-msg "Invalid response.~%"))
+  (let ((response (parse-integer (prompt-read prompt) :junk-allowed t)))
+    (loop while (not response)
+       do
+	 (format t error-msg)
+	 (setf response (parse-integer (prompt-read prompt) :junk-allowed t)))
+    response))
+
+(defun prompt-read-number-in-range (prompt max &key (min 0) (error-msg "Invalid response.~%"))
+  (let ((response (prompt-read-number prompt :error-msg error-msg)))
+    (loop while (not (and (<= response max)
+			  (> response min)))
+       do
+	 (format t error-msg)
+	 (setf response (prompt-read-number prompt :error-msg error-msg)))
+    response))
+
+(setf *d/choices* '((:text "Write code." :call #'(lambda () (format t "OK, then go write code.~%" )))
+		    (:text "Sleep." :call #'(lambda () (format t "OK, then go sleep.~%")))))
 
 (defun enumerate-plist (plist)
   (loop
@@ -27,3 +44,12 @@
   (with-output-to-string (str)
     (dolist (choice (mapcar #'format-choice choices))
       (write-line choice str)))))
+
+(defun choose (choices &key (enumerate t) (prompt "Choice"))
+  (let ((choice nil))
+    (loop while (not choice)
+       do
+	 (format t (format-choices choices :enumerate enumerate))
+	 (setf choice (prompt-read-number-in-range prompt (length choices))))
+    (setf choice (nth (- choice 1) choices))
+    (funcall (getf choice :call))))
