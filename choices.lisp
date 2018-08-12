@@ -25,8 +25,8 @@
 	 (setf response (prompt-read-number prompt :error-msg error-msg)))
     response))
 
-(setf *d/choices* '((:text "Write code." :call #'(lambda () (format t "OK, then go write code.~%" )))
-		    (:text "Sleep." :call #'(lambda () (format t "OK, then go sleep.~%")))))
+(setf *d/choices* `((:text "Write code." :callback ,#'(lambda () (format t "OK, then go write code.~%" )))
+		    (:text "Sleep." :callback ,#'(lambda () (format t "OK, then go sleep.~%")))))
 
 (defun enumerate-plist (plist)
   (loop
@@ -52,4 +52,4 @@
 	 (format t (format-choices choices :enumerate enumerate))
 	 (setf choice (prompt-read-number-in-range prompt (length choices))))
     (setf choice (nth (- choice 1) choices))
-    (funcall (getf choice :call))))
+    (funcall (getf choice :callback))))
